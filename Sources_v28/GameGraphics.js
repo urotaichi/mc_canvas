@@ -82,6 +82,12 @@ class GameGraphics {
 
 	/**
 	 * 画像を読み込み、指定された番号の画像として格納する
+	 *
+	 * * 0: タイトル画像
+	 * * 1: エンディング画像
+	 * * 2: ゲームオーバー画像
+	 * * 3: 地図画面
+	 *
 	 * @param {number} id 画像番号
 	 * @param {string} filename ファイル名(または画像のURL,相対パス)
 	 */
@@ -90,6 +96,10 @@ class GameGraphics {
 		this.mt.push(this.li[id]);
 	}
 
+	/**
+	 * 画像の読み込み完了を待つ
+	 * NOTE: 現在未実装。何もしない
+	 */
 	loadImage() {}
 
 	/**
