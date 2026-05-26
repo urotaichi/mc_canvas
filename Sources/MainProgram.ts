@@ -4564,22 +4564,25 @@ class MainProgram {
 		this.ana_kazu = 0;
 		for (let k2 = 0; k2 <= 11; k2++) this.ana_c[k2] = 0;
 
-		this.mapsMakeStageData(100 + this.stage);
-
 		let k5;
 		if (this.stage == 2) k5 = this.tdb.getValueInt("scroll_mode_s");
 		else if (this.stage == 3) k5 = this.tdb.getValueInt("scroll_mode_t");
 		else if (this.stage == 4) k5 = this.tdb.getValueInt("scroll_mode_f");
 		else k5 = this.tdb.getValueInt("scroll_mode");
-		if (k5 == 2) {
-			// 強制スクロール
+		if (k5 == 2 || k5 == 3) {
+			// マップ作成前に強制スクロールモードをあらかじめ指定（マップ作成時setChipValue関数を呼び出しボス戦がある場合sl_stepの値を変化させるので）
 			this.sl_step = 10;
+		}
+
+		this.mapsMakeStageData(100 + this.stage);
+
+		if (k5 == 2) {
+			// 強制スクロール設定
 			this.ks_wx = 32;
 			this.ks_wy = (this.mapHeight - rounddown((this.gg.di.height - 320) / 32)) * 32;
 			this.sl_speed = 2;
 		} else if (k5 == 3) {
-			// 高速強制スクロール
-			this.sl_step = 10;
+			// 高速強制スクロール設定
 			this.ks_wx = 32;
 			this.ks_wy = (this.mapHeight - rounddown((this.gg.di.height - 320) / 32)) * 32;
 			this.sl_speed = 4;
