@@ -631,7 +631,7 @@ class Game {
 	}
 
 	__pad_released(ch: number) {
-		if (this.__mc.gk) {
+		if (this.__mc?.gk) {
 			var co = Game.pad.codes[ch];
 			this.__mc.gk.keyReleased({
 				keyCode: co,
@@ -698,6 +698,7 @@ function waitFor(param: ImageBuff[]) {
 // java.applet.AudioClipもどき（未実装）
 class AudioClip {
 	_dat: HTMLAudioElement;
+	_loopHandler: (() => void) | null = null;
 	constructor(url: string) {
 		this._dat = new Audio();
 		//alert(this._dat.src);
@@ -735,9 +736,23 @@ class AudioClip {
 		return true;
 	}
 
-	loop() {
+	loop(loopStartMs = 0, loopEndMs?: number) {
 		try {
-			this._dat.loop = true;
+			this._removeLoopHandler();
+			const loopStart = Math.max(0, loopStartMs) / 1000;
+			const loopEnd = loopEndMs == null ? Number.POSITIVE_INFINITY : loopEndMs / 1000;
+			if (loopStart > 0 || Number.isFinite(loopEnd)) {
+				this._dat.loop = false;
+				this._loopHandler = () => {
+					const duration = Number.isFinite(loopEnd) ? loopEnd : this._dat.duration;
+					if (Number.isFinite(duration) && duration > loopStart && this._dat.currentTime >= duration) {
+						this._dat.currentTime = loopStart;
+					}
+				};
+				this._dat.addEventListener("timeupdate", this._loopHandler);
+			} else {
+				this._dat.loop = true;
+			}
 			this._dat.currentTime = 0;
 			this._dat.play();
 		} catch (e) {
@@ -748,11 +763,19 @@ class AudioClip {
 
 	stop() {
 		try {
+			this._removeLoopHandler();
 			this._dat.pause();
 		} catch (e) {
 			return false;
 		}
 		return true;
+	}
+
+	private _removeLoopHandler() {
+		if (this._loopHandler != null) {
+			this._dat.removeEventListener("timeupdate", this._loopHandler);
+			this._loopHandler = null;
+		}
 	}
 }
 

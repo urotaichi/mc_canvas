@@ -185,7 +185,7 @@ class MasaoJSS {
 	setScrollAreaReal: (s: string | number, s1: string | number, s2: string | number, s3: string | number) => boolean;
 	isPressCodeKey: (s: string | number) => 0 | 1;
 	playBGM: (s: string) => boolean;
-	playBGMLoop: (s: string) => boolean;
+	playBGMLoop: (s: string, loopStartMs?: number, loopEndMs?: number) => boolean;
 	stopBGM: () => boolean;
 	getBossHP: () => number;
 	setBossHP: (s: string | number) => boolean;
@@ -2628,11 +2628,13 @@ class MasaoJSS {
 		 * 再生終了したらループします。
 		 *
 		 * @param {string} filename ファイル名
+		 * @param {number} loopStartMs ループ開始位置（ミリ秒）
+		 * @param {number} loopEndMs ループ終了位置（ミリ秒）
 		 *
 		 * @see {@link MasaoJSS#playBGM|playBGM}
 		 */
-		this.playBGMLoop = function (s) {
-			if (mc.gs) return mc.gs.playUserBGMFileLoop(s);
+		this.playBGMLoop = function (filename, loopStartMs, loopEndMs) {
+			if (mc.gs) return mc.gs.playUserBGMFileLoop(filename, loopStartMs, loopEndMs);
 			else return false;
 		};
 

@@ -1860,9 +1860,9 @@ class MasaoConstruction {
 		return false;
 	}
 
-	playBGMLoop(paramString: string) {
+	playBGMLoop(paramString: string, loopStartMs?: number, loopEndMs?: number) {
 		if (this.gs != null) {
-			return this.gs.playUserBGMFileLoop(paramString);
+			return this.gs.playUserBGMFileLoop(paramString, loopStartMs, loopEndMs);
 		}
 		return false;
 	}

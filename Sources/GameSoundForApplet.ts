@@ -172,7 +172,7 @@ abstract class GameSoundBase<SoundInstance> {
 	abstract playBGM(paramInt: number, loopflg?: boolean): void;
 	abstract stopBGM(): void;
 	abstract playUserBGMFile(paramString: string, loopflg?: boolean): boolean;
-	abstract playUserBGMFileLoop(paramString: string): boolean;
+	abstract playUserBGMFileLoop(paramString: string, loopStartMs?: number, loopEndMs?: number): boolean;
 	abstract userInteract(): void;
 	abstract kill(): void;
 }
@@ -315,12 +315,12 @@ class GameSoundForApplet extends GameSoundBase<AudioClip> {
 		return false;
 	}
 
-	playUserBGMFileLoop(paramString: string) {
+	playUserBGMFileLoop(paramString: string, loopStartMs?: number, loopEndMs?: number) {
 		this.stopBGM();
 
 		this.bgm[19] = this.ap.getAudioClip(paramString, true);
 		if (this.bgm[19] != null) {
-			this.bgm[19].loop();
+			this.bgm[19].loop(loopStartMs, loopEndMs);
 
 			this.bgm_genzai = 19;
 
@@ -545,7 +545,7 @@ class GameSoundWebAudio extends GameSoundBase<AudioBuffer> {
 		this.play(paramInt);
 	}
 	rsPlay() {}
-	playBGM(paramInt: number, loopflg: boolean) {
+	playBGM(paramInt: number, loopflg: boolean, loopStartMs = 0, loopEndMs?: number) {
 		if (this.mute_f || this.context.state !== "running") {
 			return;
 		}
@@ -568,13 +568,20 @@ class GameSoundWebAudio extends GameSoundBase<AudioBuffer> {
 		if (this.bgm[paramInt] == null) {
 			return;
 		}
+		const buffer = this.bgm[paramInt];
 		var source = this.context.createBufferSource();
-		source.buffer = this.bgm[paramInt];
+		source.buffer = buffer;
 		source.connect(this.dest);
 		if (loopflg || this.bgm_loop) {
+			const loopStart = Math.max(0, loopStartMs) / 1000;
+			const loopEnd = loopEndMs == null ? buffer.duration : loopEndMs / 1000;
+			if (loopEnd <= loopStart || loopStart >= buffer.duration) {
+				source.disconnect();
+				return;
+			}
 			source.loop = true;
-			source.loopStart = 0;
-			source.loopEnd = source.buffer!.duration;
+			source.loopStart = loopStart;
+			source.loopEnd = Math.min(loopEnd, buffer.duration);
 		}
 		source.start(0);
 
@@ -589,21 +596,21 @@ class GameSoundWebAudio extends GameSoundBase<AudioBuffer> {
 		this.bgmSourceNodes[this.bgm_genzai] = void 0;
 		this.bgm_genzai = -1;
 	}
-	playUserBGMFile(paramString: string, loopflg: boolean) {
+	playUserBGMFile(paramString: string, loopflg: boolean, loopStartMs?: number, loopEndMs?: number) {
 		var url = this.ap.getAudioURL(paramString, true);
 		this._loadAudioBufferInto(url, this.bgm, 19, (buf) => {
 			this.stopBGM();
 			if (buf != null) {
 				this.bgm_filename[19] = url;
 
-				this.playBGM(19, loopflg);
+				this.playBGM(19, loopflg, loopStartMs, loopEndMs);
 			}
 		});
 
 		return false;
 	}
-	playUserBGMFileLoop(paramString: string) {
-		return this.playUserBGMFile(paramString, true);
+	playUserBGMFileLoop(paramString: string, loopStartMs?: number, loopEndMs?: number) {
+		return this.playUserBGMFile(paramString, true, loopStartMs, loopEndMs);
 	}
 	userInteract() {
 		const { context } = this;
